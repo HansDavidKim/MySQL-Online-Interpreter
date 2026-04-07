@@ -17,15 +17,15 @@ This project provides:
 
 ## Project Files
 
-- [`frontend/src/routes/+page.svelte`](/Users/kimdaewon/Desktop/프로젝트/mysql-interpreter/frontend/src/routes/+page.svelte): main UI
-- [`backend/app.py`](/Users/kimdaewon/Desktop/프로젝트/mysql-interpreter/backend/app.py): API entrypoint
-- [`backend/schema_init.sql`](/Users/kimdaewon/Desktop/프로젝트/mysql-interpreter/backend/schema_init.sql): base relational schema
-- [`backend/sample_appending.sql`](/Users/kimdaewon/Desktop/프로젝트/mysql-interpreter/backend/sample_appending.sql): sample rows loaded into each practice DB
-- [`docker-compose.yml`](/Users/kimdaewon/Desktop/프로젝트/mysql-interpreter/docker-compose.yml): local MySQL container
+- [`frontend/src/routes/+page.svelte`](frontend/src/routes/+page.svelte): main UI
+- [`backend/app.py`](backend/app.py): API entrypoint
+- [`backend/schema_init.sql`](backend/schema_init.sql): base relational schema
+- [`backend/sample_appending.sql`](backend/sample_appending.sql): sample rows loaded into each practice DB
+- [`docker-compose.yml`](docker-compose.yml): local MySQL container
 
 ## Environment
 
-Set [`.env`](/Users/kimdaewon/Desktop/프로젝트/mysql-interpreter/.env) with at least:
+Set [`.env`](.env) with at least:
 
 ```env
 MYSQL_HOST=127.0.0.1
@@ -72,7 +72,7 @@ Instead:
 
 - each client IP gets its own practice database
 - the database name is derived from `MYSQL_DATABASE` and the client IP
-- a new session database is initialized with [`backend/schema_init.sql`](/Users/kimdaewon/Desktop/프로젝트/mysql-interpreter/backend/schema_init.sql) and [`backend/sample_appending.sql`](/Users/kimdaewon/Desktop/프로젝트/mysql-interpreter/backend/sample_appending.sql)
+- a new session database is initialized with [`backend/schema_init.sql`](backend/schema_init.sql) and [`backend/sample_appending.sql`](backend/sample_appending.sql)
 - the frontend sends periodic heartbeat requests
 - when the page closes, the frontend requests release
 - expired sessions are cleaned up after `SESSION_TTL_SECONDS`
