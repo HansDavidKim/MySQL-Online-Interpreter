@@ -1,34 +1,103 @@
-### MySQL Interpreter
-##### Implemented with SvelteKit & Actual MySQL
+## MySQL Interpreter
 
----
+Sogang University `CSE4110 Database Systems` course project.
 
-## Local MySQL
+This project provides:
 
-Use Docker Compose to run the practice database locally.
+- a SvelteKit frontend for running SQL queries
+- a FastAPI backend connected to MySQL
+- an IP-scoped practice database session that is initialized from course schema and sample data
+- a schema diagram view generated from live database metadata
 
-1. Ensure [`.env`](/Users/kimdaewon/Desktop/프로젝트/mysql-interpreter/.env) contains the MySQL connection values.
-2. Start MySQL with `docker compose up -d`.
-3. If you need a fresh initialization from [`backend/schema_init.sql`](/Users/kimdaewon/Desktop/프로젝트/mysql-interpreter/backend/schema_init.sql), run `docker compose down -v` first, then `docker compose up -d`.
+## Stack
 
-## Backend API
+- Frontend: SvelteKit
+- Backend: FastAPI
+- Database: MySQL 8 via Docker Compose
 
-The backend exposes schema metadata for the current practice database.
+## Project Files
 
-1. Install Python dependencies with `pip install -r backend/requirements.txt`.
-2. Start the API with `uvicorn backend.app:app --reload`.
-3. Open `http://127.0.0.1:8000/api/schema-metadata`.
+- [`frontend/src/routes/+page.svelte`](/Users/kimdaewon/Desktop/프로젝트/mysql-interpreter/frontend/src/routes/+page.svelte): main UI
+- [`backend/app.py`](/Users/kimdaewon/Desktop/프로젝트/mysql-interpreter/backend/app.py): API entrypoint
+- [`backend/schema_init.sql`](/Users/kimdaewon/Desktop/프로젝트/mysql-interpreter/backend/schema_init.sql): base relational schema
+- [`backend/sample_appending.sql`](/Users/kimdaewon/Desktop/프로젝트/mysql-interpreter/backend/sample_appending.sql): sample rows loaded into each practice DB
+- [`docker-compose.yml`](/Users/kimdaewon/Desktop/프로젝트/mysql-interpreter/docker-compose.yml): local MySQL container
 
-You can inspect a user-specific practice database with:
+## Environment
 
-`http://127.0.0.1:8000/api/schema-metadata?user_id=alice`
+Set [`.env`](/Users/kimdaewon/Desktop/프로젝트/mysql-interpreter/.env) with at least:
 
-This resolves to a database named `mysql_interpreter_practice_alice` when `MYSQL_DATABASE=mysql_interpreter_practice`.
+```env
+MYSQL_HOST=127.0.0.1
+MYSQL_PORT=3306
+MYSQL_DATABASE=mysql_interpreter_practice
+MYSQL_USER=practice_user
+MYSQL_PASSWORD=practice_password
+MYSQL_ROOT_PASSWORD=rootpassword
+SESSION_TTL_SECONDS=90
+```
 
-## Frontend
+`MYSQL_ROOT_PASSWORD` is required because the backend creates and drops practice databases dynamically.
 
-1. Run `cd frontend && npm run dev`.
-2. Open the local SvelteKit page.
-3. The landing page fetches schema metadata from `http://127.0.0.1:8000` by default.
+## Run Locally
 
-If needed, override the backend base URL with `VITE_BACKEND_URL`.
+1. Start MySQL.
+
+```bash
+docker compose up -d
+```
+
+2. Install backend dependencies and run the API.
+
+```bash
+pip install -r backend/requirements.txt
+uvicorn backend.app:app --reload
+```
+
+3. Run the frontend.
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+4. Open the local SvelteKit page shown by Vite, usually `http://localhost:5173`.
+
+## Practice Database Session
+
+The backend does not use login-based database allocation right now.
+
+Instead:
+
+- each client IP gets its own practice database
+- the database name is derived from `MYSQL_DATABASE` and the client IP
+- a new session database is initialized with [`backend/schema_init.sql`](/Users/kimdaewon/Desktop/프로젝트/mysql-interpreter/backend/schema_init.sql) and [`backend/sample_appending.sql`](/Users/kimdaewon/Desktop/프로젝트/mysql-interpreter/backend/sample_appending.sql)
+- the frontend sends periodic heartbeat requests
+- when the page closes, the frontend requests release
+- expired sessions are cleaned up after `SESSION_TTL_SECONDS`
+
+This is approximate session cleanup, not a perfect disconnect detector.
+
+## Query Behavior
+
+The frontend query panel sends SQL to the backend and refreshes the schema diagram after execution.
+
+Special handling exists for `CREATE TABLE` statements using textbook-style foreign key shorthand such as:
+
+```sql
+foreign key (dept_name) references department
+```
+
+If MySQL rejects that form, the backend retries by expanding it to the referenced primary key columns automatically.
+
+## Resetting MySQL State
+
+To reset the Docker MySQL volume completely:
+
+```bash
+docker compose down -v
+docker compose up -d
+```
+
+Then restart the backend so new IP-scoped practice databases are recreated from the current schema and sample SQL.
