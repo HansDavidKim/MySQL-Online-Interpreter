@@ -14,7 +14,7 @@ CREATE TABLE course
     dept_name varchar (20),
     credits numeric (2, 0),
     primary key (course_id),
-    foreign key (dept_name) references department
+    foreign key (dept_name) references department(dept_name)
 );
 
 CREATE TABLE instructor
@@ -24,13 +24,13 @@ CREATE TABLE instructor
     dept_name varchar (20),
     salary numeric (8, 2),
     primary key (ID),
-    foreign key (dept_name) references department
+    foreign key (dept_name) references department(dept_name)
 );
 
 /* Weak Entity Set in E-R Diagram */
 CREATE TABLE section
 (
-    course_id varchar (8),
+    course_id varchar (7),
     sec_id varchar (8),
     semester varchar (6),
     year numeric (4, 0),
@@ -38,17 +38,18 @@ CREATE TABLE section
     room_number varchar (7),
     time_slot_id varchar (4),
     primary key (course_id, sec_id, semester, year),
-    foreign key (course_id) references course
+    foreign key (course_id) references course(course_id)
 );
 
 CREATE TABLE teaches
 (
     ID varchar (5),
-    course_id varchar (8),
+    course_id varchar (7),
     sec_id varchar (8),
     semester varchar (6),
     year numeric (4, 0),
     primary key (ID, course_id, sec_id, semester, year),
-    foreign key (course_id, sec_id, semester, year) references section,
-    foreign key (ID) references instructor
+    foreign key (course_id, sec_id, semester, year)
+        references section(course_id, sec_id, semester, year),
+    foreign key (ID) references instructor(ID)
 );

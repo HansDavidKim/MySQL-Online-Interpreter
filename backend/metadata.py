@@ -1,6 +1,4 @@
 from __future__ import annotations
-
-import re
 from collections import defaultdict
 
 import pymysql
@@ -8,21 +6,8 @@ import pymysql
 from backend.config import settings
 
 
-USER_ID_PATTERN = re.compile(r"[^a-zA-Z0-9_]+")
-
-
 class DatabaseNotFoundError(Exception):
     pass
-
-
-def resolve_database_name(user_id: str | None) -> str:
-    if not user_id:
-        return settings.mysql_database
-
-    normalized = USER_ID_PATTERN.sub("_", user_id.strip()).strip("_").lower()
-    if not normalized:
-        return settings.mysql_database
-    return f"{settings.mysql_database}_{normalized}"
 
 
 def _get_connection():
@@ -50,9 +35,7 @@ def _schema_exists(cursor, schema_name: str) -> bool:
     return cursor.fetchone() is not None
 
 
-def fetch_schema_metadata(user_id: str | None = None) -> dict:
-    schema_name = resolve_database_name(user_id)
-
+def fetch_schema_metadata(schema_name: str) -> dict:
     with _get_connection() as connection:
         with connection.cursor() as cursor:
             if not _schema_exists(cursor, schema_name):
@@ -148,6 +131,7 @@ def fetch_schema_metadata(user_id: str | None = None) -> dict:
                 "type": row["column_type"],
                 "nullable": row["is_nullable"] == "YES",
                 "isPrimaryKey": False,
+                "isForeignKey": False,
             }
         )
 
@@ -181,6 +165,12 @@ def fetch_schema_metadata(user_id: str | None = None) -> dict:
                 "toColumn": row["referenced_column_name"],
             }
         )
+
+        table = tables.get(row["table_name"])
+        if table:
+            for column in table["columns"]:
+                if column["name"] == row["column_name"]:
+                    column["isForeignKey"] = True
 
     return {
         "database": schema_name,

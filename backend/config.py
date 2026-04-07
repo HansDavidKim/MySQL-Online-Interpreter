@@ -17,6 +17,8 @@ class Settings:
     mysql_database: str = os.getenv("MYSQL_DATABASE", "mysql_interpreter_practice")
     mysql_user: str = os.getenv("MYSQL_USER", "practice_user")
     mysql_password: str = os.getenv("MYSQL_PASSWORD", "practice_password")
+    mysql_root_password: str = os.getenv("MYSQL_ROOT_PASSWORD", "")
+    session_ttl_seconds: int = int(os.getenv("SESSION_TTL_SECONDS", "90"))
 
 
 settings = Settings()
